@@ -111,25 +111,53 @@ Your browser does not support the canvas element.
 			outline-style: none;">Reset Drawing</button>
 
 <script>
-var n = 0;
+var n = 0;	//number of loop iterations drawn
 var lastStroke = 0;
 var pointOccupied = [];
-for(var i = 0; i < 800; ++i) {
+for(var i = 0; i < 800; ++i) { //initialize the array
     pointOccupied[i] = [ ];
     for(var j = 0; j < 400; ++j) {
         pointOccupied[i][j] = false; // pointOccupied[i] is now an array so this works.
     }
 }
+var recordSecondaryNodes = false;
+var drawFractal = true;	//allows to turn drawing on and off
+var coefficient = 5;
+var denominator = 7;
+var nodeSkip = 1;
+var lineLength = 10;	//length of the line in pixels
+var nextStroke = 14; 	//total # for next orders is first one * 10 + second one. ex right down = 14
+var right = 1; 
+var left = 2;
+var up = 3;
+var down = 4;
+var strokeOne = 0;
+var strokeTwo = 0;
+var turn = true;
+var clockwise = true;
+var counterClockwise = false;
+var turns = 1;
+var incrementer = 1;
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+ctx.canvas.width = window.innerWidth;	//makes the canvas aware that css resized it to the size of the window
+ctx.canvas.height = window.innerHeight;
+ctx.fillStyle = "#000080";	//dark blue
+ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+ctx.strokeStyle = "#FFD400";	//gold
+var middleHeight = ctx.canvas.height / 2;
+var X = Math.floor(ctx.canvas.width / (2 * lineLength));	//node index. this what the array of nodes uses as indices
+var Y = Math.floor(middleHeight / lineLength);
 
 function resetDrawing(){
-	ctx.closePath();
-	n = 0;
+	ctx.closePath();	//to be able to reset all the drawn things
+	n = 0;		//reset number of loop iterations drawn
 	middleHeight = ctx.canvas.height / 2;
 	X = Math.floor(ctx.canvas.width / (2 * lineLength));
 	Y = Math.floor(middleHeight / lineLength);
-	ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+	ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
 	ctx.fillStyle = "#000080";
-	ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+	ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height);
 	ctx.beginPath();
 	nextStroke = 14;
 	
@@ -141,12 +169,8 @@ function resetDrawing(){
 	}
 }
 
-var recordSecondaryNodes = false;
-var drawFractal = true;
-var coefficient = 5;
-var denominator = 7;
-var nodeSkip = 1;
-var drawingIntervalID = setInterval(function() {drawTheFractal()}, 500);
+
+var drawingIntervalID = setInterval(function() {drawTheFractal()}, 500); 	//calls drawTheFractal every 500 milliseconds
 function keyPressHandler(e){
 	if(e.keyCode == 32){
 		if(drawFractal){
@@ -157,63 +181,29 @@ function keyPressHandler(e){
 			drawingIntervalID = setInterval(function() {drawTheFractal()}, 500);
 			drawFractal = true;
 		}
-		//drawTheFractal();
 	}
 }
-function keyUpHandler(e){
-	/*if(e.keyCode == 32){
-		clearInterval(drawingIntervalID);
-	}*/
-}
-document.addEventListener("keypress", keyPressHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
 
-var lineLength = 10;
-var nextStroke = 14;
-var right = 1; //total # for next orders is first one * 10 + second one. ex right down = 14
-var left = 2;
-var up = 3;
-var down = 4;
-var strokeOne = 0;
-var strokeTwo = 0;
-
-var turn = true;
-var clockwise = true;
-var counterClockwise = false;
-
-var turns = 1;
-var incrementer = 1;
-
-var canvas = document.getElementById("myCanvas");
-var ctx = canvas.getContext("2d");
-ctx.canvas.width = window.innerWidth;
-ctx.canvas.height = window.innerHeight;
-ctx.fillStyle = "#000080";
-ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
-ctx.strokeStyle = "#FFD400";
-var middleHeight = ctx.canvas.height / 2;
-var X = Math.floor(ctx.canvas.width / (2 * lineLength));
-var Y = Math.floor(middleHeight / lineLength);
+document.addEventListener("keypress", keyPressHandler, false); //adds the above function to
 
 function drawTheFractal(){
-	if(n === 0){
+	if(n === 0){		//if it's the beginning or a reset just occurred, or anythin else has made the count restart
 		middleHeight = ctx.canvas.height / 2;
 		X = Math.floor(ctx.canvas.width / (2 * lineLength));
 		Y = Math.floor(middleHeight / lineLength);
 		
 	}
-	lineLength = Math.floor(lineLengthInput.value);
+	lineLength = Math.floor(lineLengthInput.value);		//floor is required. research: why? do inputs return a double by default? integers are necessary for the divisions to go through properly
 	coefficient = Math.floor(coefficientInput.value);
 	nodeSkip = Math.floor(nodeSkipInput.value);
 	incrementer = Math.floor(incrementerInput.value);
-	//alert(recordSecondaryNodes);
-		//drawFractal = false;
-		for(turns = 0; turns < coefficient*n / denominator; turns += incrementer){
-		strokeOne = Math.floor(nextStroke / 10);
+		for(turns = 0; turns < coefficient*n / denominator; turns += incrementer){	//THE for loop
+		strokeOne = Math.floor(nextStroke / 10);	//gets both numbers back out of the nextStroke shorthand. reminder, first digit is stroke one, second digit is stroke two
 		strokeTwo = nextStroke % 10;
 		
+		//draw the first stroke. this is going to be in line with whatever last turn's ending direction was
 		if(strokeOne === right){
-			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){
+			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){	//continues to skip over already drawn nodes until it finds a new one
 				X += 1;
 			}
 			ctx.moveTo((X - 1) * lineLength + 2, Y * lineLength);
@@ -247,9 +237,9 @@ function drawTheFractal(){
 		
 		var nodeSkipTimesX = nodeSkip * X;
 		var nodeSkipTimesY = nodeSkip * Y;
-		//alert(nodeSkipTimesX + "" + X);
 		pointOccupied[nodeSkipTimesX][nodeSkipTimesY] = true;
 		
+		//draw the second stroke. this one is determined by whether last turn wanted the next one to be clockwise or counterclockwise
 		if(strokeTwo === down){
 			Y += 1;
 			ctx.lineTo(X * lineLength, Y * lineLength - 2);
@@ -315,13 +305,10 @@ function drawTheFractal(){
 		//nextStroke = 14;
 	}
 	
-	turn = !turn;
-	n += 1;
-	
-	//drawFractal = true;
+	turn = !turn; 	//after the for executes, it inverts the turning direction
+	n += 1;		//after the loop, recoreds that a set of turns has been drawn
 	
 }
-
 </script>
 
 </body>
