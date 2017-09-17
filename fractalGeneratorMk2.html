@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+
+  <style type = "text/css" media = "all">
+         body {
+            background-color: #000080;
+         }
+         h1 {
+            color: #FFD400;
+            margin-left: 40px;
+         }
+		 canvas{
+			position: absolute;
+			/*left: 50%;*/
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			left: 0px;
+			top: 0px;
+		 }
+		 input {
+			position: absolute;
+			left: 200px;
+			z-index: 1;
+		 }
+		 input.nodeChecker{
+			left: 600px;
+			top: 10px;
+		 }
+		 input.highest{
+			top: 10px;
+		 }
+		 input.second{
+			top: 30px;
+		 }
+		 input.third{
+			top: 50px;
+		 }
+		 input.fourth{
+			top: 70px;
+		 }
+		 input.fifth{
+			top: 90px;
+		 }
+		 label {
+			position: absolute;
+			z-index: 1;
+			color: #FFD400;
+			font-weight: bold;
+			left: 10px;
+		 }
+		 label.nodeChecker{
+			left: 400px;
+			top: 10px; 
+		 }
+		 label.highest {
+			top: 10px;
+		 }
+		 label.second {
+			top: 30px;
+		 }
+		 label.third{
+			top: 50px;
+		 }
+		 label.fourth{
+			top: 70px;
+		 }
+		 label.fifth{
+			top: 90px;
+		 ]
+		 button{
+			position: absolute;
+			top: 110px;
+			left: 10px;
+			z-indez: 1;
+			color: #FFD400;
+			background-color: #000080;
+			border-color: #000080;
+			outline-style: none;
+		 }
+		 
+      </style>
+
+<body>
+<canvas id="myCanvas">
+Your browser does not support the canvas element.
+</canvas>
+
+<label for="lineLengthInput" class="highest">Length of each line:</label>
+<input  id="lineLengthInput" type="number" class="highest" name="lineLengthInput" value="10">
+
+<label for="coefficientInput" class="second">Coefficient of iterator:</label>
+<input  id="coefficientInput" type="number" class="second" name="coefficientInput" value="5">
+
+<label for="denominatorInput" class="third">Denominator of iterator:</label>
+<input  id="denominatorInput" type="number" class="third" name="denominatorInput" value="7">
+
+<label for="nodeSkipInput" class="fourth">Node Skip Multiplier:</label>
+<input  id="nodeSkipInput" type="number" class="fourth" name="nodeSkipInput" value="1">
+
+<label for="incrementerInput" class="fifth">Iterator incrementer:</label>
+<input  id="incrementerInput" type="number" class="fifth" name="incrementerInput" value="1">
+
+<button type="button" onclick="resetDrawing()" style="position: absolute;
+			bottom: 10px;
+			left: 10px;
+			z-indez: 1;
+			color: #FFD400;
+			background-color: #000080;
+			border-color: #000080;
+			outline-style: none;">Reset Drawing</button>
+
+<script>
+var n = 0;
+var lastStroke = 0;
+var pointOccupied = [];
+for(var i = 0; i < 800; ++i) {
+    pointOccupied[i] = [ ];
+    for(var j = 0; j < 400; ++j) {
+        pointOccupied[i][j] = false; // pointOccupied[i] is now an array so this works.
+    }
+}
+
+function resetDrawing(){
+	ctx.closePath();
+	n = 0;
+	middleHeight = ctx.canvas.height / 2;
+	X = Math.floor(ctx.canvas.width / (2 * lineLength));
+	Y = Math.floor(middleHeight / lineLength);
+	ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+	ctx.fillStyle = "#000080";
+	ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+	ctx.beginPath();
+	nextStroke = 14;
+	
+	for(var i = 0; i < 800; ++i) {
+		pointOccupied[i] = [ ];
+		for(var j = 0; j < 400; ++j) {
+			pointOccupied[i][j] = false; // pointOccupied[i] is now an array so this works.
+		}
+	}
+}
+
+var recordSecondaryNodes = false;
+var drawFractal = true;
+var coefficient = 5;
+var denominator = 7;
+var nodeSkip = 1;
+var drawingIntervalID = setInterval(function() {drawTheFractal()}, 500);
+function keyPressHandler(e){
+	if(e.keyCode == 32){
+		if(drawFractal){
+			clearInterval(drawingIntervalID);
+			drawFractal = false;
+		}
+		else if(!drawFractal){
+			drawingIntervalID = setInterval(function() {drawTheFractal()}, 500);
+			drawFractal = true;
+		}
+		//drawTheFractal();
+	}
+}
+function keyUpHandler(e){
+	/*if(e.keyCode == 32){
+		clearInterval(drawingIntervalID);
+	}*/
+}
+document.addEventListener("keypress", keyPressHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+var lineLength = 10;
+var nextStroke = 14;
+var right = 1; //total # for next orders is first one * 10 + second one. ex right down = 14
+var left = 2;
+var up = 3;
+var down = 4;
+var strokeOne = 0;
+var strokeTwo = 0;
+
+var turn = true;
+var clockwise = true;
+var counterClockwise = false;
+
+var turns = 1;
+var incrementer = 1;
+
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+ctx.canvas.width = window.innerWidth;
+ctx.canvas.height = window.innerHeight;
+ctx.fillStyle = "#000080";
+ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+ctx.strokeStyle = "#FFD400";
+var middleHeight = ctx.canvas.height / 2;
+var X = Math.floor(ctx.canvas.width / (2 * lineLength));
+var Y = Math.floor(middleHeight / lineLength);
+
+function drawTheFractal(){
+	if(n === 0){
+		middleHeight = ctx.canvas.height / 2;
+		X = Math.floor(ctx.canvas.width / (2 * lineLength));
+		Y = Math.floor(middleHeight / lineLength);
+		
+	}
+	lineLength = Math.floor(lineLengthInput.value);
+	coefficient = Math.floor(coefficientInput.value);
+	nodeSkip = Math.floor(nodeSkipInput.value);
+	incrementer = Math.floor(incrementerInput.value);
+	//alert(recordSecondaryNodes);
+		//drawFractal = false;
+		for(turns = 0; turns < coefficient*n / denominator; turns += incrementer){
+		strokeOne = Math.floor(nextStroke / 10);
+		strokeTwo = nextStroke % 10;
+		
+		if(strokeOne === right){
+			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){
+				X += 1;
+			}
+			ctx.moveTo((X - 1) * lineLength + 2, Y * lineLength);
+			ctx.lineTo(X * lineLength, Y * lineLength); //also moves to X, Y
+			ctx.stroke();
+		}
+		else if(strokeOne === left){
+			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){
+				X -= 1;
+			}
+			ctx.moveTo((X + 1) * lineLength - 2, Y * lineLength);
+			ctx.lineTo(X * lineLength, Y * lineLength); //also moves to X, Y
+			ctx.stroke();
+		}
+		else if(strokeOne === down){
+			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){
+				Y += 1;
+			}
+			ctx.moveTo(X * lineLength, (Y - 1) * lineLength + 2);
+			ctx.lineTo(X * lineLength, Y * lineLength); //also moves to X, Y
+			ctx.stroke();
+		}
+		else if(strokeOne === up){
+			while(pointOccupied[nodeSkip * X][nodeSkip * Y] === true){
+				Y -= 1;
+			}
+			ctx.moveTo(X * lineLength, (Y + 1) * lineLength - 2);
+			ctx.lineTo(X * lineLength, Y * lineLength); //also moves to X, Y
+			ctx.stroke();
+		}
+		
+		var nodeSkipTimesX = nodeSkip * X;
+		var nodeSkipTimesY = nodeSkip * Y;
+		//alert(nodeSkipTimesX + "" + X);
+		pointOccupied[nodeSkipTimesX][nodeSkipTimesY] = true;
+		
+		if(strokeTwo === down){
+			Y += 1;
+			ctx.lineTo(X * lineLength, Y * lineLength - 2);
+			ctx.stroke();
+			Y += 1; //so that the next node is placed further down
+			nextStroke = 40; //first stroke will be down, then have a method that chooses what the next second line will be
+			//set what the next turn will be
+			if(turn === clockwise){
+				nextStroke += left;
+			}
+			else if(turn === counterClockwise){
+				nextStroke += right;
+			}
+		}
+		else if(strokeTwo === up){
+			Y -= 1;
+			ctx.lineTo(X * lineLength, Y * lineLength + 2);
+			ctx.stroke();
+			Y -= 1; //so that the next node is placed further down
+			nextStroke = 30; //first stroke will be down, then have a method that chooses what the next second line will be
+			//set what the next turn will be
+			if(turn === clockwise){
+				nextStroke += right;
+			}
+			else if(turn === counterClockwise){
+				nextStroke += left;
+			}
+		}
+		else if(strokeTwo === left){
+			X -= 1;
+			ctx.lineTo(X * lineLength + 2, Y * lineLength);
+			ctx.stroke();
+			X -= 1; //so that the next node is placed further down
+			nextStroke = 20; //first stroke will be down, then have a method that chooses what the next second line will be
+			//set what the next turn will be
+			if(turn === clockwise){
+				nextStroke += up;
+			}
+			else if(turn === counterClockwise){
+				nextStroke += down;
+			}
+		}
+		else if(strokeTwo === right){
+			X += 1;
+			ctx.lineTo(X * lineLength - 2, Y * lineLength);
+			ctx.stroke();
+			X += 1; //so that the next node is placed further down
+			nextStroke = 10; //first stroke will be down, then have a method that chooses what the next second line will be
+			//set what the next turn will be
+			if(turn === clockwise){
+				nextStroke += down;
+			}
+			else if(turn === counterClockwise){
+				nextStroke += up;
+			}
+		}
+		
+		if(recordSecondaryNodes){
+			nodeSkipTimesX = nodeSkip * X;
+			nodeSkipTimesY = nodeSkip * Y;
+			pointOccupied[nodeSkipTimesX][nodeSkipTimesY] = true;
+		}
+		//nextStroke = 14;
+	}
+	
+	turn = !turn;
+	n += 1;
+	
+	//drawFractal = true;
+	
+}
+
+</script>
+
+</body>
+</html>
